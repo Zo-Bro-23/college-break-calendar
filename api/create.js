@@ -3,14 +3,13 @@ const fetch = require("node-fetch");
 
 module.exports = async (req, res) => {
   const events = [];
-  const colleges = req.query.college?.split(",") || [];
+  const colleges = req.query?.college?.split(",");
   const dbres = await fetch(
     `https://college-break-calendar-default-rtdb.firebaseio.com/.json?auth=${process.env.FIREBASE_SECRET}`
   );
   const db = await dbres.json();
-  console.log(db);
   for (key in db) {
-    if (colleges.includes(key) || colleges == []) {
+    if (!colleges || colleges.includes(key)) {
       for (br in db[key]) {
         const event = db[key][br];
         const start = new Date(event.startDate);
