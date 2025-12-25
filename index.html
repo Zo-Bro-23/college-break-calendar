@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>College Break Calendar</title>
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="min-h-screen bg-slate-950 text-slate-100">
+    <div class="max-w-5xl mx-auto px-4 py-10">
+        <h1 class="text-2xl font-semibold tracking-tight">College Break Calendar</h1>
+        <p class="text-slate-400 mt-1">
+            Select colleges and subscribe to a live calendar feed.
+        </p>
+
+        <div class="mt-6 bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-sm">
+            <!-- Controls -->
+            <div class="flex flex-col md:flex-row gap-3">
+                <input id="search" type="search" placeholder="Search colleges…"
+                    class="w-full md:flex-1 rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-2 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200 focus:border-slate-400" />
+
+                <button id="selectAll"
+                    class="rounded-xl border border-slate-700 bg-slate-950/40 px-4 py-2 hover:bg-slate-800/60 active:bg-slate-800 transition">
+                    Select all
+                </button>
+
+                <button id="clearAll"
+                    class="rounded-xl border border-slate-700 bg-slate-950/40 px-4 py-2 hover:bg-slate-800/60 active:bg-slate-800 transition">
+                    Clear
+                </button>
+            </div>
+
+            <!-- College list -->
+            <div id="list" class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+
+            <!-- URL + actions -->
+            <div class="mt-6">
+                <label class="text-sm text-slate-400">Subscription URL</label>
+                <input id="subUrl" readonly
+                    class="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-100" />
+
+                <div class="mt-4 flex flex-wrap gap-2">
+                    <button id="copyUrl"
+                        class="rounded-xl border border-slate-700 bg-slate-950/40 px-4 py-2 hover:bg-slate-800/60 active:bg-slate-800 transition">
+                        Copy URL
+                    </button>
+
+                    <a id="downloadIcs"
+                        class="rounded-xl border border-slate-700 bg-slate-950/40 px-4 py-2 hover:bg-slate-800/60 active:bg-slate-800 transition"
+                        download>
+                        Download .ics
+                    </a>
+
+                    <a id="appleWebcal"
+                        class="rounded-xl bg-slate-100 text-slate-950 px-4 py-2 hover:bg-white active:bg-slate-200 transition">
+                        Add to Apple Calendar
+                    </a>
+
+                    <a id="googleAdd" target="_blank"
+                        class="rounded-xl border border-slate-700 bg-slate-950/40 px-4 py-2 hover:bg-slate-800/60 active:bg-slate-800 transition">
+                        Add to Google Calendar
+                    </a>
+
+                    <a id="suggest" target="_blank"
+                        class="rounded-xl border border-slate-700 bg-slate-950/40 px-4 py-2 hover:bg-slate-800/60 active:bg-slate-800 transition">
+                        Suggest a college
+                    </a>
+                </div>
+
+                <p class="mt-3 text-sm text-slate-400">
+                    Note: All calendars require <b class="text-slate-200">admin verification</b> before publication
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /******** CONFIG ********/
+        const ICS_ENDPOINT = "https://calendar.zohan.tech/api/create";
+        const SUGGEST_FORM = "https://forms.gle/cHzg9DBVxpaGr4nH9";
+
+        const COLLEGES = [
+            { id: "harvardcollege", name: "Harvard University" },
+            { id: "yaleuniversity", name: "Yale University" },
+            { id: "princetonuniversity", name: "Princeton University" },
+            { id: "mit", name: "MIT" },
+            { id: "stanforduniversity", name: "Stanford University" },
+            { id: "brownuniversity", name: "Brown University" }
+        ];
+
+        /******** STATE ********/
+        const selected = new Set();
+
+        /******** ELEMENTS ********/
+        const elList = document.getElementById("list");
+        const elSearch = document.getElementById("search");
+        const elSubUrl = document.getElementById("subUrl");
+        const elCopy = document.getElementById("copyUrl");
+        const elDownload = document.getElementById("downloadIcs");
+        const elApple = document.getElementById("appleWebcal");
+        const elGoogle = document.getElementById("googleAdd");
+        const elSuggest = document.getElementById("suggest");
+
+        elSuggest.href = SUGGEST_FORM;
+        elGoogle.href = "https://calendar.google.com/calendar/u/0/r/settings/addbyurl";
+
+        /******** FUNCTIONS ********/
+        function buildUrl() {
+            const url = new URL(ICS_ENDPOINT);
+            if (selected.size > 0) {
+                url.searchParams.set("college", [...selected].join(","));
+            }
+            return url.toString();
+        }
+
+        function toWebcal(url) {
+            return url.replace(/^https?:\/\//, "webcal://");
+        }
+
+        function toGoogle(url) {
+            return `https://calendar.google.com/calendar/u/0/r?cid=${encodeURIComponent(url.replace("https", "http"))}`
+        }
+
+        function sync() {
+            const httpUrl = buildUrl();
+            elSubUrl.value = httpUrl;
+            elDownload.href = httpUrl;
+            elApple.href = toWebcal(httpUrl);
+            elGoogle.href = toGoogle(httpUrl);
+        }
+
+        function render() {
+            const q = elSearch.value.toLowerCase();
+            elList.innerHTML = COLLEGES
+                .filter(c => c.name.toLowerCase().includes(q))
+                .map(c => `
+          <label class="group flex items-start gap-3 rounded-xl border border-slate-800 bg-slate-950/40 p-3 hover:bg-slate-900/60 transition">
+            <input
+              type="checkbox"
+              data-id="${c.id}"
+              ${selected.has(c.id) ? "checked" : ""}
+              class="mt-1 h-4 w-4 rounded border-slate-600 bg-slate-950 text-slate-100 accent-slate-200"
+            />
+            <div>
+              <div class="font-medium text-slate-100 group-hover:text-white">${c.name}</div>
+              <div class="text-xs text-slate-500">${c.id}</div>
+            </div>
+          </label>
+        `)
+                .join("");
+
+            elList.querySelectorAll("input[type=checkbox]").forEach(cb => {
+                cb.onchange = () => {
+                    const id = cb.dataset.id;
+                    cb.checked ? selected.add(id) : selected.delete(id);
+                    sync();
+                };
+            });
+        }
+
+        /******** EVENTS ********/
+        document.getElementById("selectAll").onclick = () => {
+            COLLEGES.forEach(c => selected.add(c.id));
+            render(); sync();
+        };
+
+        document.getElementById("clearAll").onclick = () => {
+            selected.clear();
+            render(); sync();
+        };
+
+        elSearch.oninput = render;
+
+        elCopy.onclick = async () => {
+            await navigator.clipboard.writeText(elSubUrl.value);
+            elCopy.textContent = "Copied!";
+            setTimeout(() => (elCopy.textContent = "Copy URL"), 800);
+        };
+
+        /******** INIT ********/
+        render();
+        sync();
+    </script>
+</body>
+
+</html>

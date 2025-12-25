@@ -10,7 +10,7 @@ module.exports = async (req, res) => {
   const db = await dbres.json();
   console.log(db);
   for (key in db) {
-    if (colleges.includes(key)) {
+    if (colleges.includes(key) || colleges == []) {
       for (br in db[key]) {
         const event = db[key][br];
         const start = new Date(event.startDate);
