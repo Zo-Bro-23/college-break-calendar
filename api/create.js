@@ -4,7 +4,7 @@ const fetch = require("node-fetch");
 
 module.exports = async (req, res) => {
   const events = [];
-  const colleges = req.query.split(",");
+  const colleges = req.query.college.split(",");
   const dbres = await fetch(
     `https://college-break-calendar-default-rtdb.firebaseio.com/.json?auth=${process.env.FIREBASE_SECRET}`
   );
