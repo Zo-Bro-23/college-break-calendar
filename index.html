@@ -55,7 +55,7 @@
                         Download .ics
                     </a>
 
-                    <a id="appleWebcal"
+                    <a id="appleWebcal" target="_blank"
                         class="rounded-xl bg-slate-100 text-slate-950 px-4 py-2 hover:bg-white/60 active:bg-slate-200 transition">
                         Add to Apple Calendar
                     </a>
@@ -81,16 +81,28 @@
     <script>
         /******** CONFIG ********/
         const ICS_ENDPOINT = "https://calendar.zohan.tech/api/create";
+        const LIST_ENDPOINT = "http://localhost:5210/list";
         const SUGGEST_FORM = "https://forms.gle/cHzg9DBVxpaGr4nH9";
 
         const COLLEGES = [
-            { id: "harvardcollege", name: "Harvard University" },
-            { id: "yaleuniversity", name: "Yale University" },
-            { id: "princetonuniversity", name: "Princeton University" },
-            { id: "mit", name: "MIT" },
-            { id: "stanforduniversity", name: "Stanford University" },
-            { id: "brownuniversity", name: "Brown University" }
+            // { id: "harvardcollege", name: "Harvard University" },
+            // { id: "yaleuniversity", name: "Yale University" },
+            // { id: "princetonuniversity", name: "Princeton University" },
+            // { id: "mit", name: "MIT" },
+            // { id: "stanforduniversity", name: "Stanford University" },
+            // { id: "brownuniversity", name: "Brown University" }
         ];
+
+        async function fetchColleges() {
+            const response = await fetch(LIST_ENDPOINT)
+            const data = await response.json()
+            for (key in data) {
+                COLLEGES.push({ id: key, name: data[key][Object.keys(data[key])[0]].collegeName })
+            }
+            render();
+        }
+
+        fetchColleges();
 
         /******** STATE ********/
         const selected = new Set();
