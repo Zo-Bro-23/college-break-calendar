@@ -80,9 +80,9 @@
 
     <script>
         /******** CONFIG ********/
-        const ICS_ENDPOINT = "https://calendar.zohan.tech/api/create";
-        const LIST_ENDPOINT = "https://calendar.zohan.tech/api/list";
-        const SUGGEST_FORM = "https://forms.gle/cHzg9DBVxpaGr4nH9";
+        const ICS_ENDPOINT = "https://calendar.zohan.tech/api/create/";
+        const LIST_ENDPOINT = "https://calendar.zohan.tech/api/list/";
+        const SUGGEST_FORM = "https://forms.gle/cHzg9DBVxpaGr4nH9/";
 
         const COLLEGES = [
             // { id: "harvardcollege", name: "Harvard University" },
@@ -118,7 +118,6 @@
         const elSuggest = document.getElementById("suggest");
 
         elSuggest.href = SUGGEST_FORM;
-        elGoogle.href = "https://calendar.google.com/calendar/u/0/r/settings/addbyurl";
 
         /******** FUNCTIONS ********/
         function buildUrl() {
@@ -134,7 +133,7 @@
         }
 
         function toGoogle(url) {
-            return `https://calendar.google.com/calendar/u/0/r?cid=${encodeURIComponent(url.replace("https", "http"))}`
+            return `https://calendar.google.com/calendar/u/0/r?cid=${encodeURIComponent(url.replace(/^https?:\/\//, "webcal://"))}`
         }
 
         function sync() {
